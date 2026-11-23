@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Layout Algorithms Reference</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<nav class="crumbs"><a href="../index.html">Course</a> · Reference</nav>
+
+<h1>CSS Layout Algorithms</h1>
+<p class="subtitle">A property is an input. The algorithm decides what it means.</p>
+
+<h2>Which algorithm am I in?</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Algorithm</th><th>Triggered by</th><th>Signature behaviour</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Flow</strong></td><td>Default. Parent is <code>display: block</code> / <code>inline</code></td><td>Block elements stack vertically; inline elements flow like text. Vertical margins collapse. <code>width</code>/<code>height</code> are ignored on inline elements. <code>z-index</code> needs <code>position</code>.</td></tr>
+    <tr><td><strong>Flexbox</strong></td><td>Parent <code>display: flex</code> / <code>inline-flex</code></td><td>One axis. <code>width</code>/<code>height</code> feed flex-basis (a suggestion). Items shrink by default (<code>flex-shrink: 1</code>). No margin collapse. <code>z-index</code> works without <code>position</code>.</td></tr>
+    <tr><td><strong>Grid</strong></td><td>Parent <code>display: grid</code> / <code>inline-grid</code></td><td>Two axes; items sit in tracks. No margin collapse. Items can overlap in the same cell. <code>z-index</code> works without <code>position</code>.</td></tr>
+    <tr><td><strong>Positioned</strong></td><td>The element's own <code>position: absolute</code> / <code>fixed</code></td><td>Taken out of its parent's algorithm (an absolute child of a flex container is not a flex item). Offsets are measured from the containing block, which is the nearest positioned ancestor.</td></tr>
+  </tbody>
+</table>
+</div>
+<p style="font-size:.85rem;color:var(--muted)">Also exist: table, multi-column, float. <code>display: flex</code> = block on the outside, Flexbox for its children.</p>
+
+<h2>Tailwind ↔ CSS</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Tailwind</th><th>CSS</th><th>Effect on layout</th></tr></thead>
+  <tbody>
+    <tr><td><code>block</code> / <code>inline</code> / <code>inline-block</code></td><td><code>display: …</code></td><td>Flow, as a block box or a text-like box</td></tr>
+    <tr><td><code>flex</code> · <code>grid</code></td><td><code>display: flex</code> · <code>grid</code></td><td>Children enter Flexbox / Grid</td></tr>
+    <tr><td><code>absolute</code> · <code>fixed</code> · <code>relative</code></td><td><code>position: …</code></td><td>Element enters Positioned (or becomes a containing block, with <code>relative</code>)</td></tr>
+    <tr><td><code>shrink-0</code></td><td><code>flex-shrink: 0</code></td><td>Flex item keeps its width</td></tr>
+    <tr><td><code>gap-4</code></td><td><code>gap: …</code></td><td>Spacing in flex/grid without margin collapse</td></tr>
+    <tr><td><code>z-10</code></td><td><code>z-index: 10</code></td><td>Needs <code>relative</code> in Flow; not needed on flex/grid items</td></tr>
+  </tbody>
+</table>
+</div>
+<p style="font-size:.85rem;color:var(--muted)"><a href="https://tailwindcss.com/docs/preflight">Preflight</a> makes images block-level, so the image gap only reappears if you set <code>inline</code>/<code>inline-block</code> on an image or work without Preflight.</p>
+
+<h2>Debugging checklist</h2>
+<ol>
+  <li>Is the declaration applied? In DevTools, a crossed-out declaration means a specificity or cascade problem.</li>
+  <li>What is the <strong>parent's</strong> computed <code>display</code>? Look for <code>flex</code>/<code>grid</code> badges in the Elements panel.</li>
+  <li>What is the element's own <code>position</code>?</li>
+  <li>How does <em>that</em> algorithm use the property? Look it up for that algorithm specifically.</li>
+</ol>
+
+<h2>Known gotchas</h2>
+
+<h3>Gap under an image</h3>
+<pre>/* Cause: in Flow, img is inline and sits on the text baseline */
+img { display: block; }          /* fix A: change its own display */
+.frame { display: flex; }        /* fix B: put it in another algorithm */</pre>
+
+<h3>Margins “disappear” between blocks</h3>
+<pre>/* Flow collapses adjacent vertical margins: max(24, 16) = 24px */
+/* In flex/grid they don't collapse. Prefer gap: */
+.stack { display: flex; flex-direction: column; gap: 1rem; }</pre>
+
+<h3>Fixed width ignored inside a flex row</h3>
+<pre>.item { width: 400px; flex-shrink: 0; }   /* opt out of shrinking */</pre>
+
+<h3>Width on a span does nothing</h3>
+<pre>span { display: inline-block; width: 200px; }</pre>
+
+<h2>Sources</h2>
+<ul>
+  <li><a href="https://www.joshwcomeau.com/css/understanding-layout-algorithms/">Comeau: Understanding Layout Algorithms</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_display/Introduction_to_formatting_contexts">MDN: Introduction to formatting contexts</a></li>
+  <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_box_model/Mastering_margin_collapsing">MDN: Mastering margin collapsing</a></li>
+</ul>
+<p style="font-size:.85rem">Taught in <a href="../lessons/0001-css-layout-algorithms.html">Lesson 0001</a>.</p>
+
+</main>
+</body>
+</html>

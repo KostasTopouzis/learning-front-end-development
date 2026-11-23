@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSS Layout Algorithms</title>
+<link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+<main class="page">
+
+<nav class="crumbs"><a href="../index.html">Course</a> · P1 Responsive site · Lesson 0001</nav>
+
+<h1>CSS Is a Set of Layout Algorithms</h1>
+<p class="subtitle">The missing piece behind “I know Flexbox and Grid, but CSS still surprises me.”</p>
+
+<div class="callout portfolio">
+  <span class="label">Why this, why now</span>
+  <p>Your first portfolio piece (<strong>P1</strong>) is a responsive, image-rich site. Most “my layout broke” and “my image has a weird gap” bugs come from the same blind spot. Learning one CSS property at a time hides the system that decides what each property <em>means</em>. This lesson gives you that system. It takes about 25 minutes.</p>
+</div>
+
+<p class="thesis">A CSS property has no single meaning. It is an <em>input</em>, and the <strong>layout algorithm</strong> the element is in decides what to do with it.</p>
+
+<p><span class="newthought">You probably learned CSS</span> as a dictionary: <code>width</code> sets the width, <code>margin</code> adds space, <code>z-index</code> controls stacking. That model works until it doesn't, and then CSS feels random. Josh Comeau calls this the moment to switch to a different question: not “what does this property do?” but “how does <em>this layout algorithm</em> use this property?”<span class="sidenote">Comeau, <a href="https://www.joshwcomeau.com/css/understanding-layout-algorithms/">“Understanding Layout Algorithms”</a>. The spec calls these <em>layout modes</em> or <em>formatting contexts</em> (<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_display/Introduction_to_formatting_contexts">MDN</a>). Different names, same idea.</span></p>
+
+<h2>Who chooses the algorithm?</h2>
+
+<p>Mostly the <strong>parent</strong>. A parent's <code>display</code> value picks the algorithm its <em>children</em> are laid out with. The element's own <code>position</code> can pull it out into a different one.<span class="sidenote"><code>display</code> has two parts: how the box behaves outside (block or inline) and how it lays out its children (flow, flex, grid). <code>display: flex</code> means “block on the outside, Flexbox for my children.” See <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/display">MDN: display</a>.</span></p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Algorithm</th><th>An element is in it when…</th><th>Tailwind</th><th>A property it reinterprets</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Flow</strong></td><td>its parent is <code>display: block</code> (the default)</td><td><code>block</code></td><td>Vertical margins <em>collapse</em>; <code>width</code> is ignored on inline elements</td></tr>
+    <tr><td><strong>Flexbox</strong></td><td>its parent is <code>display: flex</code></td><td><code>flex</code></td><td><code>width</code> becomes a starting suggestion, so items can shrink or grow</td></tr>
+    <tr><td><strong>Grid</strong></td><td>its parent is <code>display: grid</code></td><td><code>grid</code></td><td><code>z-index</code> works even without <code>position</code></td></tr>
+    <tr><td><strong>Positioned</strong></td><td>it has <code>position: absolute</code> or <code>fixed</code> itself</td><td><code>absolute</code> <code>fixed</code></td><td>It leaves the parent's algorithm; <code>top</code>/<code>left</code> are measured from its containing block</td></tr>
+  </tbody>
+</table>
+</div>
+<p>There are others (table, multi-column, float), but these four cover nearly everything you'll build in P1.</p>
+
+<p><strong>One extra rule for Flow.</strong> Flow treats children differently based on the child's <em>own</em> outer display. <em>Block</em> children (<code>div</code>, <code>p</code>) stack and respect <code>width</code>. <em>Inline</em> children (<code>span</code>, <code>a</code>, <code>strong</code>) flow along the line like words, sized by their content. Flexbox and Grid ignore this distinction: every child becomes a flex or grid item.<span class="sidenote"><a href="https://developer.mozilla.org/en-US/docs/Glossary/Inline-level_content">MDN: inline-level content</a>. The spec calls the Flexbox/Grid conversion <em>blockification</em>.</span></p>
+
+<h2>See it: same CSS, different algorithm</h2>
+
+<h3>1 · <code>width</code> is a rule in Flow and a suggestion in Flexbox</h3>
+<p>The child asks for <code>width: 2000px</code> inside a 300px parent. Predict what each preset does, then click it. The readout under the playground measures the real rendered size.</p>
+
+<div class="playground" data-playground data-measure="size:.child">
+<template data-html><div class="parent"><div class="child">child</div></div></template>
+<template data-preset="Flow (display: block)">
+  .parent {
+    display: block;
+    width: 300px;
+    border: 2px dashed #999;
+  }
+  .child {
+    width: 2000px;
+    height: 60px;
+    background: #f4b8ad;
+  }
+</template>
+<template data-preset="Flexbox (display: flex)">
+  .parent {
+    display: flex;
+    width: 300px;
+    border: 2px dashed #999;
+  }
+  .child {
+    width: 2000px;
+    height: 60px;
+    background: #f4b8ad;
+  }
+</template>
+</div>
+
+<p>In Flexbox, <code>width</code> feeds the item's <em>flex-basis</em>, a hypothetical size. <code>flex-shrink</code> defaults to <code>1</code>, so the item is allowed to shrink to fit.<span class="sidenote">Try adding <code>flex-shrink: 0;</code> to <code>.child</code> in the Flexbox preset. Background: <a href="https://www.joshwcomeau.com/css/interactive-guide-to-flexbox/">Comeau, “An Interactive Guide to Flexbox.”</a></span> Flow has no concept of shrinking, so the child overflows.</p>
+
+<h3>2 · Margins collapse in Flow and nowhere else</h3>
+
+<div class="playground" data-playground data-measure="gap:.a,.b">
+<template data-html><div class="parent"><p class="a">A: margin-bottom 24px</p><p class="b">B: margin-top 16px</p></div></template>
+<template data-preset="Flow">
+  .parent { display: block; }
+  p { margin: 0; padding: 8px; background: #cfe3d2; }
+  .a { margin-bottom: 24px; }
+  .b { margin-top: 16px; }
+</template>
+<template data-preset="Flexbox column">
+  .parent { display: flex; flex-direction: column; }
+  p { margin: 0; padding: 8px; background: #cfe3d2; }
+  .a { margin-bottom: 24px; }
+  .b { margin-top: 16px; }
+</template>
+</div>
+
+<p>In Flow, adjacent vertical margins merge and the larger one wins: 24px, not 40px.<span class="sidenote"><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_box_model/Mastering_margin_collapsing">MDN: Mastering margin collapsing</a>.</span> Flexbox and Grid don't do this. This is one reason many developers reach for <code>gap</code> instead of margins in flex and grid layouts.</p>
+
+<h3>3 · The mystery gap under images (your P1 bug, pre-solved)</h3>
+<p>The frame below should hug its 90px-tall image. Compare the two heights in the readout.</p>
+
+<div class="playground" data-playground data-measure="size:.frame; size:img">
+<template data-html><div class="frame"><img alt="" width="160" height="90" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='90'%3E%3Crect width='160' height='90' fill='%23a3271f'/%3E%3C/svg%3E"></div></template>
+<template data-preset="Flow (the bug)">
+  .frame {
+    width: fit-content;
+    border: 2px solid #333;
+  }
+</template>
+<template data-preset="Fix A: img block">
+  .frame {
+    width: fit-content;
+    border: 2px solid #333;
+  }
+  img { display: block; }
+</template>
+<template data-preset="Fix B: parent flex">
+  .frame {
+    display: flex;
+    width: fit-content;
+    border: 2px solid #333;
+  }
+</template>
+</div>
+
+<p>In Flow, an <code>&lt;img&gt;</code> is an <em>inline</em> element. It's laid out like a word of text, sitting on the text baseline, with room left underneath for letters like “g” and “y.” That room is the gap. Fix A changes the image's own display. Fix B moves the image into a different algorithm (Flexbox) where inline text rules don't apply.<span class="sidenote">This exact case is the worked example in Comeau's article. It also explains why many CSS resets include <code>img { display: block; }</code>.</span></p>
+
+<div class="callout">
+  <span class="label">In Tailwind</span>
+  <p>You may never have seen this bug, because Tailwind's base reset, <a href="https://tailwindcss.com/docs/preflight">Preflight</a>, makes images and other replaced elements block-level for you. That's Fix A, applied globally. It's a good illustration of a general point: <strong>Tailwind doesn't change the algorithms, it just picks some defaults for you.</strong> When you add <code>inline</code> or <code>inline-block</code> to an <code>&lt;img&gt;</code>, or work in a codebase without Preflight, the gap comes back. Now you know why.</p>
+  <p>The other demos in Tailwind terms: Fix B is <code>flex</code> on the parent; opting out of shrinking is <code>shrink-0</code>; and <code>flex flex-col gap-4</code> replaces margin-based spacing.</p>
+</div>
+
+<h2>The habit to build</h2>
+<p>When a property “does nothing” or does something strange, and DevTools shows the declaration is applied (not crossed out), ask these questions in order:</p>
+<ol>
+  <li><strong>Which algorithm is this element in?</strong> Inspect the <em>parent's</em> computed <code>display</code>. Chrome shows <code>flex</code>/<code>grid</code> badges next to the parent in the Elements panel.<span class="sidenote"><a href="https://developer.chrome.com/docs/devtools/css/flexbox">DevTools: flexbox</a> · <a href="https://developer.chrome.com/docs/devtools/css/grid">DevTools: grid</a></span></li>
+  <li><strong>Did the element leave it?</strong> Check its own <code>position</code>.</li>
+  <li><strong>How does <em>that</em> algorithm use this property?</strong> This is where you look things up.</li>
+</ol>
+
+<hr>
+
+<h2>Check yourself</h2>
+<p>Answer from memory, without scrolling up. Only your first click counts toward the score.</p>
+
+<section class="quiz" data-quiz>
+  <div class="q" data-answer="2">
+    <p class="prompt">A parent has <code>display: flex; width: 300px</code>. Its empty child has <code>width: 2000px</code>. What width does the child render at?</p>
+    <button class="opt">2000px, spilling past the parent</button>
+    <button class="opt">300px, shrinking to fit inside</button>
+    <button class="opt">0px, because width gets ignored</button>
+    <button class="opt">150px, half of the parent</button>
+    <div class="explain"><p>In Flexbox, <code>width</code> is a hypothetical size (the flex-basis), and <code>flex-shrink: 1</code> is the default, so the item shrinks to fit. The same CSS in Flow overflows.</p></div>
+  </div>
+
+  <div class="q" data-answer="3">
+    <p class="prompt">Normal Flow layout: <code>.a { margin-bottom: 24px }</code> is directly followed by <code>.b { margin-top: 16px }</code>. How much space is between them?</p>
+    <button class="opt">40px, both margins are added</button>
+    <button class="opt">16px, the smaller one wins</button>
+    <button class="opt">24px, the larger one wins</button>
+    <button class="opt">0px, the margins cancel out</button>
+    <div class="explain"><p>Margin collapse: in Flow, adjacent vertical margins merge and the larger one wins.</p></div>
+  </div>
+
+  <div class="q" data-answer="1">
+    <p class="prompt">Same two elements, but now the parent is <code>display: flex; flex-direction: column</code>. How much space now?</p>
+    <button class="opt">40px, both margins are added</button>
+    <button class="opt">24px, the larger one wins</button>
+    <button class="opt">16px, the smaller one wins</button>
+    <button class="opt">0px, the margins cancel out</button>
+    <div class="explain"><p>Margin collapse is a Flow rule. Flexbox doesn't implement it, so both margins apply: 24 + 16.</p></div>
+  </div>
+
+  <div class="q" data-answer="4">
+    <p class="prompt">An <code>&lt;img&gt;</code> inside a bordered <code>&lt;div&gt;</code> has a few pixels of empty space below it. What causes it?</p>
+    <button class="opt">Flexbox is adding default gap spacing</button>
+    <button class="opt">The image has hidden bottom padding</button>
+    <button class="opt">Grid is reserving an empty track</button>
+    <button class="opt">Flow treats the image like text</button>
+    <div class="explain"><p>In Flow, images are inline. They sit on the text baseline, and space is reserved below for descenders. Fix it with <code>img { display: block }</code> or by making the parent a flex container.</p></div>
+  </div>
+
+  <div class="q" data-answer="2">
+    <p class="prompt">Inside a paragraph you write <code>&lt;span style="width: 200px"&gt;hi&lt;/span&gt;</code>. What happens?</p>
+    <button class="opt">It becomes exactly 200 pixels wide</button>
+    <button class="opt">Nothing; inline boxes ignore the width</button>
+    <button class="opt">It wraps onto its own line</button>
+    <button class="opt">It stretches to fill the line</button>
+    <div class="explain"><p>The <code>&lt;p&gt;</code> is block, so its children are laid out with Flow. But the width is on the <em>span</em>, which is inline. Flow lays out inline elements like text, and <code>width</code> doesn't apply to them. Use <code>display: inline-block</code>, or make the paragraph <code>flex</code> so the span becomes a flex item.</p></div>
+  </div>
+
+  <div class="q" data-answer="3">
+    <p class="prompt">A child of a <code>display: grid</code> container has <code>z-index: 2</code> and no <code>position</code> set. Does the z-index take effect?</p>
+    <button class="opt">Ignored: it needs a position value</button>
+    <button class="opt">Ignored: only flex items accept it</button>
+    <button class="opt">Applied: grid items honour z-index directly</button>
+    <button class="opt">Applied: but only inside named areas</button>
+    <div class="explain"><p>The Flexbox and Grid algorithms both honour <code>z-index</code> on their items without <code>position</code>. Flow is the algorithm that requires it, which is where the “z-index needs position” rule of thumb comes from. See <a href="https://www.w3.org/TR/css-grid-1/#z-order">CSS Grid spec: z-axis ordering</a>.</p></div>
+  </div>
+
+  <div class="q" data-answer="1">
+    <p class="prompt">DevTools shows your declaration is applied (not crossed out), but the property still seems to do nothing. What's the most useful next question?</p>
+    <button class="opt">Which layout algorithm is this element in?</button>
+    <button class="opt">Should I add !important to this rule?</button>
+    <button class="opt">Does this browser support the property yet?</button>
+    <button class="opt">Would a wrapper div fix the problem?</button>
+    <div class="explain"><p>The declaration is winning, so specificity isn't the problem. The algorithm is choosing to interpret the property differently, so find out which algorithm it is.</p></div>
+  </div>
+</section>
+
+<details class="reveal">
+  <summary>Retrieval prompt: say it out loud before opening</summary>
+  <p>Name the four layout algorithms from this lesson. For each, give one property it treats differently, and say what decides which algorithm an element is in.</p>
+  <p><em>Answer:</em> Flow (margins collapse, width ignored on inline), Flexbox (width is a shrinkable suggestion), Grid (z-index without position), Positioned (leaves its parent's algorithm; offsets from the containing block). Mostly the <strong>parent's</strong> <code>display</code>, plus the element's own <code>position</code>.</p>
+</details>
+
+<div class="callout portfolio">
+  <span class="label">Portfolio step: do this week (≈ 30 min)</span>
+  <p>P1 doesn't exist yet, so practise the habit on code you already have:</p>
+  <ol>
+    <li>Open one of your deployed projects in Chrome DevTools.</li>
+    <li>Find <strong>two</strong> elements whose CSS has ever surprised you (a gap, overflow, a stubborn width, a <code>z-index</code> that wouldn't work).</li>
+    <li>For each, write one sentence: <em>“This element is laid out by ____ because its parent is ____, which is why ____.”</em></li>
+    <li><strong>Bonus:</strong> in a Tailwind project, open <code>node_modules/tailwindcss/preflight.css</code> and find the rule that prevents the image gap. Name one other rule in that file that changes how Flow behaves by default.</li>
+    <li>Paste your sentences and findings to me in chat. I'll check them and use them to set the next lesson.</li>
+  </ol>
+</div>
+
+<div class="callout">
+  <span class="label">Primary source (read this next)</span>
+  <p><a href="https://www.joshwcomeau.com/css/understanding-layout-algorithms/">Josh W. Comeau: “Understanding Layout Algorithms”</a> (about 15 min). It's the article this lesson is built on, with more interactive demos, including the z-index and inline-image cases in more depth.</p>
+</div>
+
+<div class="callout">
+  <span class="label">Stuck? Ask me</span>
+  <p>I'm your teacher for this course. Ask a follow-up in chat about anything that felt fuzzy, or any CSS from your own projects that still doesn't fit this model. Those questions are the most valuable input I get.</p>
+</div>
+
+<nav class="lesson-nav">
+  <a href="../index.html">← Course home</a>
+  <a href="../reference/css-layout-algorithms.html">Reference sheet: Layout algorithms</a>
+  <span style="color:var(--muted)">Next: Intrinsic sizing (coming)</span>
+</nav>
+
+</main>
+<script src="../assets/quiz.js"></script>
+<script src="../assets/playground.js"></script>
+</body>
+</html>

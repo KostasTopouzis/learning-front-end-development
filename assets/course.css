@@ -1,0 +1,188 @@
+/* ==========================================================================
+   course.css: shared stylesheet for every lesson and reference page.
+   Tufte-inspired: one readable column, sidenotes in the margin, quiet colour.
+   ========================================================================== */
+
+:root {
+  --bg: #fffff8;
+  --surface: #f6f4ea;
+  --ink: #1b1b1b;
+  --muted: #5f5d55;
+  --rule: #dcd8c8;
+  --accent: #a3271f;        /* Tufte red: links, emphasis */
+  --accent-soft: #f4e3df;
+  --good: #2f6b3a;
+  --good-soft: #e1efe2;
+  --bad: #9a2c22;
+  --bad-soft: #f6e0dc;
+  --code-bg: #f1eee2;
+
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "Cascadia Code", "JetBrains Mono", Consolas, ui-monospace, monospace;
+
+  --measure: 40rem;          /* main text column */
+  --margin-col: 15rem;       /* sidenote column */
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151513; --surface: #1f1f1c; --ink: #e9e6db; --muted: #a29f94;
+    --rule: #3a3933; --accent: #e8806f; --accent-soft: #3a221e;
+    --good: #8fd19c; --good-soft: #1e3324; --bad: #f19a8c; --bad-soft: #3d201c;
+    --code-bg: #24231f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151513; --surface: #1f1f1c; --ink: #e9e6db; --muted: #a29f94;
+  --rule: #3a3933; --accent: #e8806f; --accent-soft: #3a221e;
+  --good: #8fd19c; --good-soft: #1e3324; --bad: #f19a8c; --bad-soft: #3d201c;
+  --code-bg: #24231f; color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { font-size: 17px; -webkit-text-size-adjust: 100%; }
+@media (min-width: 900px) { html { font-size: 19px; } }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- Page frame ---------- */
+.page {
+  max-width: calc(var(--measure) + var(--margin-col) + 4rem);
+  margin: 0 auto;
+  padding: 2.5rem 1rem 5rem;
+}
+.page > * { max-width: var(--measure); }
+.page > .wide { max-width: none; }
+
+.crumbs {
+  font-family: var(--sans); font-size: .78rem; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 2.5rem;
+}
+.crumbs a { color: inherit; }
+
+/* ---------- Type ---------- */
+h1 { font-weight: 400; font-size: 2.3rem; line-height: 1.15; margin: 0 0 .4rem; }
+.subtitle { font-style: italic; font-size: 1.2rem; color: var(--muted); margin: 0 0 2rem; }
+h2 { font-weight: 400; font-style: italic; font-size: 1.55rem; margin: 3rem 0 .6rem; }
+h3 { font-weight: 400; font-size: 1.2rem; margin: 2rem 0 .4rem; }
+p, ul, ol { margin: 0 0 1.1rem; }
+li { margin-bottom: .35rem; }
+strong { font-weight: 600; }
+.newthought { font-variant: small-caps; letter-spacing: .03em; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:hover { text-decoration-thickness: 2px; }
+
+code, kbd, pre { font-family: var(--mono); font-size: .84em; }
+:not(pre) > code { background: var(--code-bg); padding: .08em .3em; border-radius: 3px; }
+pre {
+  background: var(--code-bg); padding: .9rem 1rem; border-radius: 4px;
+  overflow-x: auto; line-height: 1.45; border-left: 3px solid var(--rule);
+}
+
+hr { border: 0; border-top: 1px solid var(--rule); margin: 3rem 0; }
+
+blockquote {
+  margin: 1.5rem 0; padding-left: 1.2rem; border-left: 3px solid var(--accent);
+  font-style: italic; color: var(--muted);
+}
+
+/* ---------- Sidenotes (Tufte style) ----------
+   Usage: <span class="sidenote">…</span> placed inline after the referring text.
+   Floats into the right margin on wide screens; inline aside on narrow ones. */
+.sidenote {
+  display: block; font-size: .78rem; line-height: 1.45; color: var(--muted);
+  font-family: var(--sans); margin: .4rem 0 1rem; padding-left: .7rem;
+  border-left: 2px solid var(--rule);
+}
+@media (min-width: 1100px) {
+  .page { padding-right: calc(var(--margin-col) + 3rem); }
+  .page > .wide { margin-right: calc(-1 * (var(--margin-col) + 1rem)); }
+  .sidenote {
+    float: right; clear: right; width: var(--margin-col);
+    margin: .3rem calc(-1 * (var(--margin-col) + 2.5rem)) 1rem 0;
+    padding-left: 0; border-left: 0;
+  }
+}
+
+/* ---------- Callouts ---------- */
+.callout {
+  background: var(--surface); border-radius: 6px; padding: 1rem 1.2rem;
+  margin: 1.8rem 0; border-left: 4px solid var(--accent);
+}
+.callout > :last-child { margin-bottom: 0; }
+.callout .label {
+  display: block; font-family: var(--sans); font-size: .72rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: .3rem;
+}
+.callout.portfolio { border-left-color: var(--good); }
+.callout.portfolio .label { color: var(--good); }
+
+/* Big one-line idea */
+.thesis {
+  font-size: 1.35rem; line-height: 1.4; margin: 2rem 0; padding: 1.2rem 0;
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+
+/* ---------- Tables ---------- */
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0 1.8rem; font-size: .9rem; }
+th, td { text-align: left; vertical-align: top; padding: .5rem .6rem; border-bottom: 1px solid var(--rule); }
+th { font-family: var(--sans); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.table-wrap { overflow-x: auto; }
+
+/* ---------- Reveal (retrieval practice) ---------- */
+details.reveal {
+  background: var(--surface); border-radius: 6px; padding: .8rem 1.1rem; margin: 1.2rem 0;
+}
+details.reveal summary { cursor: pointer; font-family: var(--sans); font-size: .9rem; font-weight: 600; }
+details.reveal[open] summary { margin-bottom: .6rem; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  font-family: var(--sans); font-size: .82rem; border: 1px solid var(--rule);
+  background: var(--bg); color: var(--ink); padding: .4rem .8rem; border-radius: 999px;
+  cursor: pointer;
+}
+.btn:hover { border-color: var(--accent); }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* ---------- Footer nav ---------- */
+.lesson-nav {
+  display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  font-family: var(--sans); font-size: .85rem; margin-top: 3rem; padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+}
+
+/* ---------- Lists of lessons (index pages) ---------- */
+.toc { list-style: none; padding: 0; }
+.toc li { padding: .6rem 0; border-bottom: 1px solid var(--rule); }
+.toc .num { font-family: var(--mono); color: var(--muted); margin-right: .6rem; }
+.tag {
+  font-family: var(--sans); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em;
+  padding: .1rem .45rem; border-radius: 3px; background: var(--accent-soft); color: var(--accent);
+  margin-left: .4rem; vertical-align: middle;
+}
+
+/* ---------- Print ---------- */
+@media print {
+  :root { --bg: #fff; --surface: #f5f5f5; --code-bg: #f3f3f3; }
+  html { font-size: 11pt; }
+  .page { padding: 0; max-width: none; }
+  .page > * { max-width: none; }
+  .sidenote { float: none; width: auto; margin: .3rem 0 .8rem; padding-left: .6rem; border-left: 2px solid #ccc; }
+  .no-print, .btn, .lesson-nav { display: none !important; }
+  details.reveal { display: block; }
+  a { color: inherit; }
+  h2, h3 { break-after: avoid; }
+  pre, table, .callout { break-inside: avoid; }
+}
